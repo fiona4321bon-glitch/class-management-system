@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>班級加分系統</title>
+</head>
+<body>
+  <h2>班級加分系統</h2>
+
+  <div id="students"></div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwufpFIlBmIKOtXjCV2ircoQylKjWhHcrerYJNvVz7LlN_DFVJpkCLqDHSR_5FdTZcM/exec";
+
+    async function loadStudents() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      const container = document.getElementById("students");
+      container.innerHTML = "";
+
+      data.slice(1).forEach(row => {
+        const [id, name, score] = row;
+
+        container.innerHTML += `
+          <div style="margin-bottom:10px;">
+            ${name}（${score}分）
+            <button onclick="changeScore('${id}', 1)">+1</button>
+            <button onclick="changeScore('${id}', -1)">-1</button>
+          </div>
+        `;
+      });
+    }
+
+    async function changeScore(studentId, change) {
+      await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ studentId, change })
+      });
+
+      loadStudents();
+    }
+
+    loadStudents();
+  </script>
+</body>
+</html>
