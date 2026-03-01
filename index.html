@@ -7,41 +7,63 @@
 <body>
   <h2>班級加分系統</h2>
 
+  <div id="classList"></div>
+  <hr>
   <div id="students"></div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwufpFIlBmIKOtXjCV2ircoQylKjWhHcrerYJNvVz7LlN_DFVJpkCLqDHSR_5FdTZcM/exec";
 
-    async function loadStudents() {
+    let allData = [];
+
+    async function loadData() {
       const res = await fetch(API_URL);
-      const data = await res.json();
+      allData = await res.json();
+      renderClasses();
+    }
 
+    function renderClasses() {
+      const container = document.getElementById("classList");
+      container.innerHTML = "<h3>選擇班級</h3>";
+
+      const classes = [...new Set(allData.slice(1).map(row => row[0]))];
+
+      classes.forEach(cls => {
+        container.innerHTML += `
+          <button onclick="showStudents('${cls}')">${cls} 班</button>
+        `;
+      });
+    }
+
+    function showStudents(className) {
       const container = document.getElementById("students");
-      container.innerHTML = "";
+      container.innerHTML = `<h3>${className} 班學生</h3>`;
 
-      data.slice(1).forEach(row => {
-        const [id, name, score] = row;
+      const students = allData.slice(1).filter(row => row[0] == className);
+
+      students.forEach(row => {
+        const [cls, id, name, score] = row;
 
         container.innerHTML += `
           <div style="margin-bottom:10px;">
             ${name}（${score}分）
-            <button onclick="changeScore('${id}', 1)">+1</button>
-            <button onclick="changeScore('${id}', -1)">-1</button>
+            <button onclick="changeScore('${cls}','${id}', 1)">+1</button>
+            <button onclick="changeScore('${cls}','${id}', -1)">-1</button>
           </div>
         `;
       });
     }
 
-    async function changeScore(studentId, change) {
+    async function changeScore(className, studentId, change) {
       await fetch(API_URL, {
         method: "POST",
-        body: JSON.stringify({ studentId, change })
+        body: JSON.stringify({ className, studentId, change })
       });
 
-      loadStudents();
+      loadData();
     }
 
-    loadStudents();
+    loadData();
   </script>
 </body>
 </html>
